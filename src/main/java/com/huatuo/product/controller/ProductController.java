@@ -5,14 +5,13 @@ import com.huatuo.product.VO.ProductVO;
 import com.huatuo.product.VO.ResultVO;
 import com.huatuo.product.dataobject.ProductCategory;
 import com.huatuo.product.dataobject.ProductInfo;
+import com.huatuo.product.dto.CartDTO;
 import com.huatuo.product.service.CategoryService;
 import com.huatuo.product.service.ProductService;
 import com.huatuo.product.utils.ResultVOUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +28,7 @@ public class ProductController {
 
     @Autowired
     private CategoryService categoryService;
+
 
     @GetMapping(value = "/list")
     public ResultVO<ProductVO> list() {
@@ -69,6 +69,23 @@ public class ProductController {
         return ResultVOUtil.success(productVOList);
 
 
+    }
+
+    /**
+     * 获取商品列表（给订单服务使用）
+     */
+    @PostMapping(value = "/listForOrder")
+    public List<ProductInfo> listForOrder(@RequestBody List<String> productIdList) {
+        return productService.findList(productIdList);
+    }
+
+    /**
+     * 扣库存（给订单服务使用）
+     * @param cartDTOList
+     */
+    @PostMapping(value = "/decreaseStock")
+    public void decreaseStock(@RequestBody List<CartDTO> cartDTOList) {
+        productService.decreaseStock(cartDTOList);
     }
 
 }
