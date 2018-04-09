@@ -3,18 +3,19 @@ package com.huatuo.product.service.impl;
 import com.huatuo.product.common.DecreaseStockInput;
 import com.huatuo.product.common.ProductInfoOutput;
 import com.huatuo.product.dataobject.ProductInfo;
-import com.huatuo.product.dto.CartDTO;
 import com.huatuo.product.enums.ProductStatusEnum;
 import com.huatuo.product.enums.ResultEnum;
 import com.huatuo.product.exception.ProductException;
 import com.huatuo.product.repository.ProductInfoRepository;
 import com.huatuo.product.service.ProductService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -31,7 +32,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductInfoOutput> findList(List<String> productIdList) {
 
-        return productInfoRepository.findByProductIdIn(productIdList);
+        return productInfoRepository.findByProductIdIn(productIdList).stream()
+                .map(productInfo -> {
+                    ProductInfoOutput productInfoOutput = new ProductInfoOutput();
+                    BeanUtils.copyProperties(productInfo, productInfoOutput);
+                    return productInfoOutput;
+                })
+                .collect(Collectors.toList());
     }
 
 

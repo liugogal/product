@@ -26,7 +26,7 @@ public interface ProductService {
 
     /**
      * 扣库存
-     * @param cartDTOList
+     * @param decreaseStockInputList
      */
-    void decreaseStock(List<DecreaseStockInput> cartDTOList);
+    void decreaseStock(List<DecreaseStockInput> decreaseStockInputList);
 }

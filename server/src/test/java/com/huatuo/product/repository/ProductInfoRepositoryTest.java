@@ -1,5 +1,6 @@
 package com.huatuo.product.repository;
 
+import com.huatuo.product.common.ProductInfoOutput;
 import com.huatuo.product.dataobject.ProductInfo;
 import org.junit.Assert;
 import org.junit.Test;
