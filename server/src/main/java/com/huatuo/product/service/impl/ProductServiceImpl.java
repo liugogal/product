@@ -8,11 +8,14 @@ import com.huatuo.product.enums.ResultEnum;
 import com.huatuo.product.exception.ProductException;
 import com.huatuo.product.repository.ProductInfoRepository;
 import com.huatuo.product.service.ProductService;
+import com.huatuo.product.utils.JsonUtil;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,6 +23,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
 
     @Autowired
     private ProductInfoRepository productInfoRepository;
@@ -43,8 +50,24 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    @Transactional
     public void decreaseStock(List<DecreaseStockInput> decreaseStockInputList) {
+        List<ProductInfo> productInfoList = decreaseStockProcess(decreaseStockInputList);
+
+
+        //把productInfo 转成  productInfoOutput
+        List<ProductInfoOutput> productInfoOutputList = productInfoList.stream().map(productInfo -> {
+            ProductInfoOutput productInfoOutput = new ProductInfoOutput();
+            BeanUtils.copyProperties(productInfo, productInfoOutput);
+            return productInfoOutput;
+        }).collect(Collectors.toList());
+        amqpTemplate.convertAndSend("productInfo", JsonUtil.toJson(productInfoOutputList));
+
+    }
+
+    @Transactional
+    public List<ProductInfo> decreaseStockProcess(List<DecreaseStockInput> decreaseStockInputList) {
+        List<ProductInfo> productInfoList = new ArrayList<>();
+
         //遍历传入参数，通过id查询库存是否满足
         for (DecreaseStockInput decreaseStockInput : decreaseStockInputList) {
             Optional<ProductInfo> productInfoOptional = productInfoRepository.findById(decreaseStockInput.getProductId());
@@ -62,6 +85,10 @@ public class ProductServiceImpl implements ProductService {
 
             productInfo.setProductStock(result);
             productInfoRepository.save(productInfo);
+
+            productInfoList.add(productInfo);
         }
+
+        return productInfoList;
     }
 }
